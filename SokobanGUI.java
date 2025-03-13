@@ -258,9 +258,25 @@ public class SokobanGUI extends JFrame {
 	}
 
 	private void processMove(int keyCode) {
-		int newRow = playerRow;
-		int newCol = playerCol;
+		Point newPos = getNewPosition(keyCode);
+		if (newPos == null)
+			return;
 
+		int newRow = newPos.x, newCol = newPos.y;
+		if (!canMove(newRow, newCol))
+			return;
+
+		if (stats[newRow][newCol] == BOX) {
+			handleBoxMove(newRow, newCol);
+		} else {
+			movePlayer(newRow, newCol);
+		}
+
+		checkWinCondition();
+	}
+
+	private Point getNewPosition(int keyCode) {
+		int newRow = playerRow, newCol = playerCol;
 		switch (keyCode) {
 			case KeyEvent.VK_UP:
 				newRow--;
@@ -275,31 +291,38 @@ public class SokobanGUI extends JFrame {
 				newCol++;
 				break;
 			default:
-				return;
+				return null;
 		}
+		return new Point(newRow, newCol);
+	}
 
-		if (level[newRow][newCol] == WALL)
+	private boolean canMove(int row, int col) {
+		return level[row][col] != WALL;
+	}
+
+	private boolean canPushBox(int boxRow, int boxCol) {
+		return stats[boxRow][boxCol] != BOX && (level[boxRow][boxCol] == EMPTY || level[boxRow][boxCol] == GOAL);
+	}
+
+	private void handleBoxMove(int newRow, int newCol) {
+		int boxNewRow = newRow + (newRow - playerRow);
+		int boxNewCol = newCol + (newCol - playerCol);
+
+		if (!canPushBox(boxNewRow, boxNewCol))
 			return;
 
-		if (stats[newRow][newCol] == BOX) {
-			int boxNewRow = newRow + (newRow - playerRow);
-			int boxNewCol = newCol + (newCol - playerCol);
-			if (stats[boxNewRow][boxNewCol] == BOX)
-				return;
-			if (level[boxNewRow][boxNewCol] == EMPTY || level[boxNewRow][boxNewCol] == GOAL) {
-				stats[boxNewRow][boxNewCol] = BOX;
-				stats[newRow][newCol] = PLAYER;
-				stats[playerRow][playerCol] = EMPTY;
-				playerRow = newRow;
-				playerCol = newCol;
-			}
-		} else if (level[newRow][newCol] == EMPTY || level[newRow][newCol] == GOAL) {
-			stats[newRow][newCol] = PLAYER;
-			stats[playerRow][playerCol] = EMPTY;
-			playerRow = newRow;
-			playerCol = newCol;
-		}
+		stats[boxNewRow][boxNewCol] = BOX;
+		movePlayer(newRow, newCol);
+	}
 
+	private void movePlayer(int newRow, int newCol) {
+		stats[newRow][newCol] = PLAYER;
+		stats[playerRow][playerCol] = EMPTY;
+		playerRow = newRow;
+		playerCol = newCol;
+	}
+
+	private void checkWinCondition() {
 		if (isGameWon()) {
 			currentLevel++;
 			if (currentLevel * 2 < levels.length) {
