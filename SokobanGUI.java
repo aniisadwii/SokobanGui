@@ -176,50 +176,77 @@ public class SokobanGUI extends JFrame {
 	}
 
 	private void drawLevel(Graphics g) {
-		// Draw level indicator
+		drawLevelIndicator(g);
+		drawGameGrid(g);
+		drawCurrentPlayer(g);
+	}
+
+	private void drawLevelIndicator(Graphics g) {
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, GRID_COLS * TILE_SIZE, TILE_SIZE);
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Arial", Font.BOLD, 20));
 		g.drawString("Level: " + (currentLevel + 1), 10, 30);
+	}
 
-		// Draw the game grid
+	private void drawGameGrid(Graphics g) {
 		for (int row = 0; row < level.length; row++) {
 			for (int col = 0; col < level[row].length; col++) {
-				char cell = level[row][col];
-				char stat = stats[row][col];
-				int x = col * TILE_SIZE;
-				int y = (row + 1) * TILE_SIZE; // Offset by one row for the level indicator
-				if (stat == BOX) {
-					g.setColor(Color.ORANGE); // Yellow box
-					g.fillRoundRect(x + 10, y + 10, TILE_SIZE - 20, TILE_SIZE - 20, 15, 15);
-				} else if (stat == PLAYER) {
-					g.setColor(new Color(173, 216, 230)); // Light blue
-					g.fillOval(x + 15, y + 15, TILE_SIZE - 30, TILE_SIZE - 30);
-				}
-				switch (cell) {
-					case WALL:
-						g.setColor(Color.LIGHT_GRAY); // Same as grid
-						g.fillRoundRect(x, y, TILE_SIZE, TILE_SIZE, 15, 15);
-						g.setColor(Color.DARK_GRAY);
-						g.drawRoundRect(x, y, TILE_SIZE, TILE_SIZE, 15, 15);
-						break;
-					case GOAL:
-						g.setColor(Color.GREEN); // Green rhombus
-						int[] xPoints = { x + TILE_SIZE / 2, x + TILE_SIZE - 15, x + TILE_SIZE / 2, x + 15 };
-						int[] yPoints = { y + 15, y + TILE_SIZE / 2, y + TILE_SIZE - 15, y + TILE_SIZE / 2 };
-						g.fillPolygon(xPoints, yPoints, 4);
-						break;
-				}
+				drawCell(g, row, col);
 			}
 		}
+	}
 
+	private void drawCell(Graphics g, int row, int col) {
+		char cell = level[row][col];
+		char stat = stats[row][col];
+		int x = col * TILE_SIZE;
+		int y = (row + 1) * TILE_SIZE;
+
+		if (stat == BOX) {
+			drawBox(g, x, y);
+		} else if (stat == PLAYER) {
+			drawPlayerAt(g, x, y);
+		}
+
+		switch (cell) {
+			case WALL:
+				drawWall(g, x, y);
+				break;
+			case GOAL:
+				drawGoal(g, x, y);
+				break;
+		}
+	}
+
+	private void drawBox(Graphics g, int x, int y) {
+		g.setColor(Color.ORANGE);
+		g.fillRoundRect(x + 10, y + 10, TILE_SIZE - 20, TILE_SIZE - 20, 15, 15);
+	}
+
+	private void drawCurrentPlayer(Graphics g) {
 		int x = playerCol * TILE_SIZE;
-		int y = (playerRow + 1) * TILE_SIZE; // Offset by one row for the level indicator
+		int y = (playerRow + 1) * TILE_SIZE;
+		drawPlayerAt(g, x, y);
+	}
 
+	private void drawPlayerAt(Graphics g, int x, int y) {
 		g.setColor(new Color(173, 216, 230)); // Light blue
 		g.fillOval(x + 15, y + 15, TILE_SIZE - 30, TILE_SIZE - 30);
+	}
 
+	private void drawWall(Graphics g, int x, int y) {
+		g.setColor(Color.LIGHT_GRAY);
+		g.fillRoundRect(x, y, TILE_SIZE, TILE_SIZE, 15, 15);
+		g.setColor(Color.DARK_GRAY);
+		g.drawRoundRect(x, y, TILE_SIZE, TILE_SIZE, 15, 15);
+	}
+
+	private void drawGoal(Graphics g, int x, int y) {
+		g.setColor(Color.GREEN);
+		int[] xPoints = { x + TILE_SIZE / 2, x + TILE_SIZE - 15, x + TILE_SIZE / 2, x + 15 };
+		int[] yPoints = { y + 15, y + TILE_SIZE / 2, y + TILE_SIZE - 15, y + TILE_SIZE / 2 };
+		g.fillPolygon(xPoints, yPoints, 4);
 	}
 
 	private boolean isGameWon() {
